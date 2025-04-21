@@ -13,7 +13,7 @@ import { fetchNFTs, type NFT } from "@/lib/nft-service";
 import fetchCardanoNFTs from "@/services/cardano-service";
 import NFTCard from "@/components/nft-card";
 import WalletInfo from "@/components/Wallet-Info";
-import { base } from "wagmi/chains";
+import { base, optimism } from "wagmi/chains";
 import { useCardano } from "@/provider/CardenoProvider";
 import { CardanoWalletSelector } from "@/components/Cardano-wallet-selector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string>("base");
 
   // Get network name based on chain ID
-  const networkName = chainId === base.id ? "Base" : "Unknown";
+  const networkName = chainId === base.id ? "Base" : "optimism";
 
   // Redirect if not connected to any wallet
   useEffect(() => {
