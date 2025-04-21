@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   type ReactNode,
+  useCallback,
 } from "react";
 
 // Define the wallet API interface based on CIP-30 standard
@@ -173,72 +174,75 @@ export function CardanoProvider({ children }: { children: ReactNode }) {
     checkWallets();
   }, [walletCheckAttempts]);
 
-  // Connect to a wallet
-  const connectWallet = async (walletName: string) => {
-    try {
-      setConnecting(true);
+  // Connect to a wallet - use useCallback to memoize the function
+  const connectWallet = useCallback(
+    async (walletName: string) => {
+      try {
+        setConnecting(true);
 
-      const wallet = availableWallets.find(
-        (w) => w.name.toLowerCase() === walletName.toLowerCase()
-      );
+        const wallet = availableWallets.find(
+          (w) => w.name.toLowerCase() === walletName.toLowerCase()
+        );
 
-      if (!wallet) {
-        throw new Error(`Wallet ${walletName} not found. Please install it.`);
+        if (!wallet) {
+          throw new Error(`Wallet ${walletName} not found. Please install it.`);
+        }
+
+        // Check if already enabled
+        const isEnabled = await wallet.isEnabled().catch(() => false);
+
+        // Enable the wallet
+        const walletApi = isEnabled
+          ? await wallet.enable()
+          : await wallet.enable();
+
+        // Get wallet data
+        const addresses = await walletApi.getUsedAddresses().catch(() => []);
+        const rewardAddresses = await walletApi
+          .getRewardAddresses()
+          .catch(() => []);
+        const walletBalance = await walletApi.getBalance().catch(() => "0");
+
+        // Convert hex addresses to readable format if needed
+        const primaryAddress = addresses[0] || "";
+        const primaryStakeAddress = rewardAddresses[0] || "";
+
+        // Format balance (convert from lovelace to ADA)
+        const formattedBalance = (
+          Number.parseInt(walletBalance) / 1000000
+        ).toFixed(6);
+
+        // Set state
+        setConnectedWallet(wallet);
+        setApi(walletApi);
+        setConnected(true);
+        setAddress(primaryAddress);
+        setStakeAddress(primaryStakeAddress);
+        setBalance(formattedBalance);
+
+        // Store connection in local storage
+        localStorage.setItem("cardanoWallet", walletName);
+
+        console.log("Connected to Cardano wallet:", {
+          wallet: walletName,
+          address: primaryAddress,
+          stakeAddress: primaryStakeAddress,
+          balance: formattedBalance,
+        });
+
+        return true;
+      } catch (error) {
+        console.error("Error connecting to Cardano wallet:", error);
+        return false;
+      } finally {
+        setConnecting(false);
       }
+    },
+    [availableWallets]
+  );
 
-      // Check if already enabled
-      const isEnabled = await wallet.isEnabled().catch(() => false);
-
-      // Enable the wallet
-      const walletApi = isEnabled
-        ? await wallet.enable()
-        : await wallet.enable();
-
-      // Get wallet data
-      const addresses = await walletApi.getUsedAddresses().catch(() => []);
-      const rewardAddresses = await walletApi
-        .getRewardAddresses()
-        .catch(() => []);
-      const walletBalance = await walletApi.getBalance().catch(() => "0");
-
-      // Convert hex addresses to readable format if needed
-      const primaryAddress = addresses[0] || "";
-      const primaryStakeAddress = rewardAddresses[0] || "";
-
-      // Format balance (convert from lovelace to ADA)
-      const formattedBalance = (
-        Number.parseInt(walletBalance) / 1000000
-      ).toFixed(6);
-
-      // Set state
-      setConnectedWallet(wallet);
-      setApi(walletApi);
-      setConnected(true);
-      setAddress(primaryAddress);
-      setStakeAddress(primaryStakeAddress);
-      setBalance(formattedBalance);
-
-      // Store connection in local storage
-      localStorage.setItem("cardanoWallet", walletName);
-
-      console.log("Connected to Cardano wallet:", {
-        wallet: walletName,
-        address: primaryAddress,
-        stakeAddress: primaryStakeAddress,
-        balance: formattedBalance,
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Error connecting to Cardano wallet:", error);
-      return false;
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  // Disconnect wallet
-  const disconnectWallet = () => {
+  // Disconnect wallet - use useCallback to memoize the function
+  const disconnectWallet = useCallback(() => {
     setConnectedWallet(null);
     setApi(null);
     setConnected(false);
@@ -248,7 +252,7 @@ export function CardanoProvider({ children }: { children: ReactNode }) {
 
     // Remove from local storage
     localStorage.removeItem("cardanoWallet");
-  };
+  }, []);
 
   // Auto-connect on startup if previously connected
   useEffect(() => {
@@ -263,7 +267,8 @@ export function CardanoProvider({ children }: { children: ReactNode }) {
     if (availableWallets.length > 0 && !connected && !connecting) {
       autoConnect();
     }
-  }, [availableWallets, connected, connecting]);
+  }, [availableWallets, connected, connecting, connectWallet]);
+  // Added connectWallet to dependency array
 
   const value = {
     availableWallets,
@@ -277,6 +282,7 @@ export function CardanoProvider({ children }: { children: ReactNode }) {
     connectWallet,
     disconnectWallet,
   };
+
   return (
     <CardanoContext.Provider value={value}>{children}</CardanoContext.Provider>
   );
