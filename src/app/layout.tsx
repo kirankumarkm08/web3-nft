@@ -19,11 +19,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={``}>
         <WalletProvider>
-          <CardanoProvider>
-            <Navbar />
-            {children}
-            <Footer />
-          </CardanoProvider>
+          {/* <CardanoProvider> */}
+          <Navbar />
+          {children}
+          <Footer />
+          {/* </CardanoProvider> */}
         </WalletProvider>
       </body>
     </html>
