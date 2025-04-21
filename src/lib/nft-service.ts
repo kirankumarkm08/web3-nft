@@ -10,7 +10,7 @@ export type NFT = {
 
 export async function fetchNFTs(address: string): Promise<NFT[]> {
   try {
-    const response = await fetch(`/api/nfts?address=${address}`);
+    const response = await fetch(`/api/nft?address=${address}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch NFTs");
