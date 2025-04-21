@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { NFTBase } from "@/types/nft";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     // Call the OpenSea API to get NFTs on Base network
     const response = await fetch(
-      `https://api.opensea.io/api/v2/chain/base/account/${address}/nfts?limit=50`,
+      `https://api.opensea.io/api/v2/chain/base/account/0x5DadB2e88cF9cC2B6f53b5e7413ebFa1a7D740a1/nfts?limit=50`,
       {
         headers: {
           "X-API-KEY": process.env.OPENSEA_API_KEY || "",
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Map the OpenSea API response to our NFT format
-    const nfts = data.nfts.map((nft: any) => ({
+    const nfts = data.nfts.map((nft: NFTBase) => ({
       name: nft.name || `NFT #${nft.identifier}`,
       description: nft.description,
       image: nft.image_url || "/chromatic-whirlwind.png",

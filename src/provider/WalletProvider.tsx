@@ -7,12 +7,12 @@ import {
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { base, mainnet, optimism, arbitrum, polygon, bsc } from "wagmi/chains";
+import { base, optimism } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 // Configure chains
-const chains = [base, mainnet, optimism, arbitrum, polygon, bsc];
+// const chains = [base, mainnet, optimism, arbitrum, polygon, bsc];
 
 // Set up connectors
 const { connectors } = getDefaultWallets({

@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "./ui/button";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-export function MobileMenu() {
+function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -105,3 +104,5 @@ export function MobileMenu() {
     </div>
   );
 }
+
+export default MobileMenu;

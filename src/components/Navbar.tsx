@@ -4,46 +4,53 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Navbar as NavbarData } from "@/constants";
-import { MobileMenu } from "./MobileView";
-import WalletConnect from "./WalletConnect";
+import MobileMenu from "./MobileView";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
+import { useCardano } from "@/provider/CardenoProvider";
+import { CardanoWalletSelector } from "@/components/Cardano-wallet-selector";
 
-const Navbar = () => {
+export default function Navbar() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
+  const { connected: isCardanoConnected, stakeAddress } = useCardano();
 
-  // Handle navigation to dashboard when wallet is connected
+  // Navigate to dashboard when connected to either wallet
   useEffect(() => {
-    if (isConnected && address) {
+    if (
+      (isEvmConnected && evmAddress) ||
+      (isCardanoConnected && stakeAddress)
+    ) {
       router.push("/dashboard");
     }
-  }, [isConnected, address, router]);
+  }, [isEvmConnected, evmAddress, isCardanoConnected, stakeAddress, router]);
 
   return (
-    <div className="flex justify-between px-4 sm:px-8 md:px-20 py-4 fixed w-full bg-white z-50 border-b">
-      <Link href={"/"}>
-        <h2 className="font-bold">Rare evo 2025</h2>
+    <nav className="flex justify-between px-4 sm:px-8 md:px-20 py-4 fixed w-full bg-white z-50 border-b">
+      <Link href="/" className="font-bold">
+        Rare evo 2025
       </Link>
+
       <div className="md:flex gap-5 hidden">
-        {NavbarData.map((nav) => (
+        {NavbarData.map((item) => (
           <Link
-            href={nav.link}
-            key={nav.label}
+            href={item.link}
+            key={item.label}
             className="hover:text-gray-600 transition-colors"
           >
-            {nav.label}
+            {item.label}
           </Link>
         ))}
       </div>
-      <div className="hidden md:flex gap-5 items-center">
-        {/* <ThemeToggle /> */}
-        <WalletConnect />
+
+      <div className="hidden md:flex items-center">
+        <ConnectButton />
+        <CardanoWalletSelector />
       </div>
+
       <div className="md:hidden">
         <MobileMenu />
       </div>
-    </div>
+    </nav>
   );
-};
-
-export default Navbar;
+}

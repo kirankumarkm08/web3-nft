@@ -3,6 +3,7 @@ import "./globals.css";
 import { WalletProvider } from "@/provider/WalletProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { CardanoProvider } from "@/provider/CardenoProvider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,9 +19,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={``}>
         <WalletProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <CardanoProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </CardanoProvider>
         </WalletProvider>
       </body>
     </html>
